@@ -11,7 +11,7 @@ clock = pygame.time.Clock()
 width = screen.get_width()
 height = screen.get_height()
 running = True
-fps = 120
+fps = 120    # don't change this
 time_multiplier = 60 / fps
 
 friction = 0.99
