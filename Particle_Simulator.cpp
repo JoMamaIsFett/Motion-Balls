@@ -6,6 +6,8 @@
 #include <vector>
 #include <iostream>
 #include <random>
+#include <fstream>
+#include <string>
 #include <omp.h>
 
 using namespace std;
@@ -20,11 +22,10 @@ const Uint8* keyboardState = SDL_GetKeyboardState(nullptr);
 bool running = true;
 
 int targetFPS = 60;
-float friction = 0.993f;
+float friction = 0.99f;
 int pull_distance = 400;
 float pull_strength = 1;
 int ball_number = 1'000'000;
-float radius = 2;
 
 const int frameDelay = 1000 / targetFPS;
 Uint32 frameStart, frameTime;
@@ -172,6 +173,36 @@ void render() {
     SDL_GL_SwapWindow(window);
 }
 
+void readConfigFile(const string& filename) {
+    ifstream file(filename);
+
+    string line;
+
+    while (getline(file, line)) {
+        size_t delimiterPos = line.find('=');
+
+        if (delimiterPos != string::npos) {
+            string key = line.substr(0, delimiterPos);
+            string value = line.substr(delimiterPos + 1);
+
+            if (key == "friction") {
+                friction = stof(value);
+            }
+            else if (key == "pull_distance") {
+                pull_distance = stoi(value);
+            }
+            else if (key == "pull_strength") {
+                pull_strength = stof(value);
+            }
+            else if (key == "ball_number") {
+                ball_number = stoi(value);
+            }
+        }
+    }
+
+    file.close();
+}
+
 void initVBO() {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -199,6 +230,8 @@ void initPoints() {
 }
 
 void init() {
+    readConfigFile("config.txt");
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         cerr << "Failed to initialize SDL: " << SDL_GetError() << endl;
         exit(EXIT_FAILURE);
